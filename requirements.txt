@@ -1,4 +1,3 @@
 fastapi
 pydantic
-geb_1_3b
 uvicorn
