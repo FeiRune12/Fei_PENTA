@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fei PENTA | IA do Futuro</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="main-container">
+    <h1>Fei <span class="highlight">PENTA</span> — a IA do Futuro ⚡</h1>
+    <p class="subtitle">Digite um pedido e clique em <strong>"Gerar"</strong> para criar uma imagem incrível com IA.</p>
+
+    <form id="image-form">
+      <label for="prompt">🧠 Pedido da Imagem:</label>
+      <input type="text" id="prompt" placeholder="Ex: Um gato samurai cyberpunk bebendo ramen" required>
+      <button type="submit" id="generate-btn">Gerar Imagem</button>
+    </form>
+
+    <div id="loader" class="hidden">
+      <div class="spinner"></div>
+      <p>Gerando imagem, aguarde...</p>
+    </div>
+
+    <div id="result-section" class="hidden">
+      <h2>🖼️ Imagem Gerada:</h2>
+      <img id="result-image" src="" alt="Imagem gerada pela IA">
+    </div>
+
+    <p class="footer">Feito por <span class="highlight">Fei</span> com ❤️ e IA</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
