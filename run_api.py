@@ -16,7 +16,7 @@ class GenerationInput(BaseModel):
     
 # URL para a API de Inferência do Stable Diffusion (Exemplo)
 # Você pode escolher qualquer modelo de Hugging Face
-API_URL = "https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5"
+API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1-base"
 
 # Obtém o token da variável de ambiente (Seguro!)
 HF_API_KEY = os.getenv("HF_TOKEN")
