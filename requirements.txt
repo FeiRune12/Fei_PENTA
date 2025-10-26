@@ -1,6 +1,5 @@
 fastapi
 uvicorn
 pydantic
-geb-1-3b
 replicate
 requests
