@@ -1,21 +1,14 @@
 import os
 import requests
 import base64
+import time
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-import replicate
-from replicate.client import Client  # Importação explícita do Cliente
+# Removemos a necessidade de 'replicate' e 'GEMINI_API_KEY'
 
-# --- Configuração da API Replicate ---
-# O cliente 'replicate' procura a chave em 'REPLICATE_API_TOKEN' nas variáveis de ambiente.
-REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN")
-
-# NOVO MODELO DE IMAGEM (SDXL) - Geralmente mais acessível/gratuito
-# Modelo Stable Diffusion XL (SDXL)
-MODELO_REPLICATE = "stability-ai/stable-diffusion-xl:31c14f7e2a9c3c13101150c1844b204e38c7b889e68c6a08de3c68371358c160"
-
-# Inicialização do cliente Replicate globalmente (será feita na startup)
-client = None
+# --- Configuração da API Craiyon ---
+# O Craiyon API é gratuito e não requer chave de API.
+CRAIYON_API_URL = "https://backend.craiyon.com/generate" 
 
 # --- Modelos Pydantic ---
 
@@ -30,69 +23,62 @@ class ImageResponse(BaseModel):
     image_base64: str
 
 # --- Inicialização da API ---
-app = FastAPI(title="Fei PENTA API Image Generator (SDXL Edition)")
+app = FastAPI(title="Fei PENTA API Image Generator (Craiyon Free Edition)")
 
 @app.on_event("startup")
 async def startup_event():
-    """Inicializa o cliente Replicate e verifica a disponibilidade do token."""
-    global client
-    if not REPLICATE_API_TOKEN:
-        print("⚠️ AVISO: REPLICATE_API_TOKEN não está configurado. A API Replicate não funcionará.")
-        # Se o token não estiver configurado, inicializa com None (a chamada .run falhará, mas o linter pode passar)
-    
-    # Inicializa o cliente usando o token da variável de ambiente (se existir)
-    client = Client(api_token=REPLICATE_API_TOKEN)
-    print("✅ Cliente Replicate inicializado.")
-
+    """Confirma que a aplicação está inicializada."""
+    print("✅ Aplicação FastAPI inicializada. Usando Craiyon API (modelo gratuito).")
 
 @app.get("/")
 async def root():
     """Root endpoint para teste rápido."""
-    return {"message": "API Fei PENTA rodando para Geração de Imagens (SDXL)!"}
+    return {"message": "API Fei PENTA rodando para Geração de Imagens (Craiyon)!"}
 
 @app.post("/generate", response_model=ImageResponse)
 async def generate_image(request: PromptRequest):
     """
-    Gera uma imagem usando o Replicate, baixa o resultado e retorna a imagem em Base64.
+    Gera uma imagem usando a API gratuita do Craiyon.
+    Nota: A qualidade é inferior a SDXL/Gemini, mas é 100% gratuita.
     """
     prompt = request.prompt
     if not prompt:
         raise HTTPException(status_code=400, detail="O prompt é obrigatório.")
         
-    # Verifica se o cliente foi inicializado (se o token estava presente)
-    if not client or not REPLICATE_API_TOKEN:
-        raise HTTPException(status_code=503, detail="Serviço Replicate indisponível: Token de API ausente.")
-
     try:
-        # 1. Chamar a API da Replicate usando o objeto cliente
-        print(f"Chamando Replicate com prompt: {prompt}")
+        # 1. Preparar o payload para a Craiyon API
+        # Craiyon requer que o payload seja um dicionário simples com o prompt
+        payload = {"prompt": prompt}
         
-        # O output é uma lista de URLs de imagem
-        output_urls = client.run( # MUDANÇA AQUI: usando client.run()
-            MODELO_REPLICATE,
-            input={
-                "prompt": prompt,
-                "num_outputs": 1,
-                # SDXL precisa de menos 'guidance' que o Flux Pro. Vamos usar 7.5.
-                "guidance_scale": 7.5, 
-                "width": 1024, # SDXL prefere resoluções mais altas
-                "height": 1024
-            }
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        
+        # 2. Chamar a Craiyon API
+        print(f"Chamando Craiyon API com prompt: {prompt}")
+        
+        # O Craiyon é lento, então o timeout é de 120 segundos
+        api_response = requests.post(
+            CRAIYON_API_URL,
+            headers=headers,
+            json=payload,
+            timeout=120
         )
+        api_response.raise_for_status() # Levanta exceção para erros HTTP
         
-        if not output_urls or not output_urls[0]:
-            raise HTTPException(status_code=500, detail="Replicate não retornou um link de imagem válido.")
+        result = api_response.json()
+
+        # O Craiyon retorna uma lista de 9 imagens em base64. Pegamos a primeira.
+        # A chave é 'images' e contém uma lista de strings Base64 puras.
+        image_list_base64 = result.get('images')
+        
+        if not image_list_base64 or not image_list_base64[0]:
+            error_msg = result.get('error', 'Resposta do Craiyon incompleta ou erro desconhecido.')
+            raise HTTPException(status_code=500, detail=f"Erro na Craiyon API: {error_msg}")
             
-        image_url = output_urls[0]
-        
-        # 2. Baixar a imagem da URL
-        print(f"Baixando imagem da URL: {image_url}")
-        image_response = requests.get(image_url, timeout=30)
-        image_response.raise_for_status() # Levanta exceção para erros HTTP
-        
-        # 3. Codificar a imagem em Base64
-        img_base64 = base64.b64encode(image_response.content).decode("utf-8")
-        
+        # 3. O Base64 retornado pelo Craiyon não precisa de re-codificação
+        img_base64 = image_list_base64[0]
+            
         # 4. Retornar a resposta no formato ImageResponse
         return {
             "status": "success",
@@ -100,12 +86,12 @@ async def generate_image(request: PromptRequest):
             "image_base64": img_base64
         }
         
-    except replicate.exceptions.ReplicateException as e:
-        print(f"ERRO REPLICATE: {e}")
-        raise HTTPException(status_code=500, detail=f"Erro na API da Replicate. Detalhe: {e}")
     except requests.exceptions.RequestException as e:
         print(f"ERRO REQUESTS: {e}")
-        raise HTTPException(status_code=500, detail=f"Erro ao baixar a imagem gerada: {e}")
+        status_code = e.response.status_code if e.response is not None else 500
+        error_detail = e.response.json().get('error', {}).get('message', str(e)) if e.response is not None and e.response.content else str(e)
+        
+        raise HTTPException(status_code=status_code, detail=f"Erro de comunicação com a Craiyon API ({status_code}). Detalhe: {error_detail}")
     except Exception as e:
         print(f"ERRO INESPERADO: {e}")
         raise HTTPException(status_code=500, detail=f"Ocorreu um erro interno: {e}")
