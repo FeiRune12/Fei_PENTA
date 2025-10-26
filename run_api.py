@@ -7,7 +7,7 @@ from pydantic import BaseModel
 # --- Configuração ---
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
-API_URL = "https://huggingface.co/spaces/Qwen/Qwen-Image"
+API_URL = "https://router.huggingface.co/hf-inference/models/Qwen/Qwen-Image"
 HEADERS = {"Authorization": f"Bearer {HF_TOKEN}"} if HF_TOKEN else {}
 
 # --- Modelos ---
