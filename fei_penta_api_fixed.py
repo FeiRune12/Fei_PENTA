@@ -10,8 +10,9 @@ from replicate.client import Client  # Importação explícita do Cliente
 # O cliente 'replicate' procura a chave em 'REPLICATE_API_TOKEN' nas variáveis de ambiente.
 REPLICATE_API_TOKEN = os.environ.get("REPLICATE_API_TOKEN")
 
-# Modelo de imagem FLUX Pro
-MODELO_REPLICATE = "black-forest-labs/flux-pro"
+# NOVO MODELO DE IMAGEM (SDXL) - Geralmente mais acessível/gratuito
+# Modelo Stable Diffusion XL (SDXL)
+MODELO_REPLICATE = "stability-ai/stable-diffusion-xl:31c14f7e2a9c3c13101150c1844b204e38c7b889e68c6a08de3c68371358c160"
 
 # Inicialização do cliente Replicate globalmente (será feita na startup)
 client = None
@@ -29,7 +30,7 @@ class ImageResponse(BaseModel):
     image_base64: str
 
 # --- Inicialização da API ---
-app = FastAPI(title="Fei PENTA API Image Generator (Replicate Edition)")
+app = FastAPI(title="Fei PENTA API Image Generator (SDXL Edition)")
 
 @app.on_event("startup")
 async def startup_event():
@@ -47,7 +48,7 @@ async def startup_event():
 @app.get("/")
 async def root():
     """Root endpoint para teste rápido."""
-    return {"message": "API Fei PENTA rodando para Geração de Imagens (Replicate)!"}
+    return {"message": "API Fei PENTA rodando para Geração de Imagens (SDXL)!"}
 
 @app.post("/generate", response_model=ImageResponse)
 async def generate_image(request: PromptRequest):
@@ -72,7 +73,10 @@ async def generate_image(request: PromptRequest):
             input={
                 "prompt": prompt,
                 "num_outputs": 1,
-                "guidance": 4.5
+                # SDXL precisa de menos 'guidance' que o Flux Pro. Vamos usar 7.5.
+                "guidance_scale": 7.5, 
+                "width": 1024, # SDXL prefere resoluções mais altas
+                "height": 1024
             }
         )
         
