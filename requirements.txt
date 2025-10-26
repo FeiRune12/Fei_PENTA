@@ -1,9 +1,3 @@
 fastapi
 pydantic
 uvicorn
-# Módulo para geração de imagens
-diffusers
-# Requisito principal
-torch
-# Para manipulação e salvamento da imagem
-Pillow
