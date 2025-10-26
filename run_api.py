@@ -11,7 +11,7 @@ from pydantic import BaseModel
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
 # URL para a API de Inferência do Stable Diffusion 1.4 (comprovada como funcional)
-API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1"
+API_URL = "https://api-inference.huggingface.co/models/google/ddpm-ema-celebahq-256"
 HEADERS = {
     "Authorization": f"Bearer {HF_TOKEN}"
 }
