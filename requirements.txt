@@ -54,8 +54,6 @@ pyinstaller==6.16.0
 pyinstaller-hooks-contrib==2025.9
 pyreadline3==3.5.4
 python-multipart==0.0.20
-pywin32==311
-pywin32-ctypes==0.2.3
 PyYAML==6.0.3
 questionary==2.1.1
 regex==2025.10.23
