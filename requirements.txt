@@ -1,42 +1,24 @@
-# --- Núcleo da API ---
+# API Web
 fastapi
 uvicorn
-python-multipart
-pydantic
-starlette
-orjson
+
+# HTTP requests
 requests
 
-# --- IA e Geração de Imagens (CPU Only) ---
-diffusers
+# Integração com Hugging Face e modelos de IA
+huggingface_hub
 transformers
-accelerate
+diffusers
 torch
-torchvision
-torchaudio
-safetensors
-huggingface-hub
 
-# --- Utilitários e suporte ---
+# Manipulação de imagens e dados
 numpy
-pillow
-tqdm
-filelock
-packaging
-protobuf
-colorama
-regex
-anyio
-httpx
-httpcore
-typing-extensions
+Pillow
+opencv-python
+scipy
+einops
 
-# --- Logs e desempenho ---
-coloredlogs
-humanfriendly
-psutil
+# Upload de arquivos (para APIs que recebem imagens)
+python-multipart
+aiofiles
 
-# --- Opcional (interface / reload no Render) ---
-Jinja2
-watchfiles
-setuptools
